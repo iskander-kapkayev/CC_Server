@@ -98,7 +98,7 @@ async function checkifexists(username, email) {
     // query to check if a user exists
     const dbclient = await pool.connect();
     try {
-        await dbclient.query('BEGIN')
+        await dbclient.query('BEGIN');
         let query = 'SELECT email FROM users WHERE email = $1';
         let result = await dbclient.query(query, [email]);
         if (result.rows.length === 0) { //meaning unique email address
@@ -110,8 +110,8 @@ async function checkifexists(username, email) {
         }
         return false;
     } catch (e) {
-        await dbclient.query('ROLLBACK')
-        throw e
+        await dbclient.query('ROLLBACK');
+        throw e;
     } finally {
         dbclient.release();
     }
@@ -122,13 +122,13 @@ async function checkifexists(username, email) {
 async function insertnewuser(username, password, email) {
     const dbclient = await pool.connect();
     try {
-        await dbclient.query('BEGIN')
+        await dbclient.query('BEGIN');
         const now = new Date(); // set and convert timestamp
         const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
         const ePassword = await encryptPassword(password); // encrypt password
         let query = 'INSERT INTO users (username, password, email, registeredat, lastlogin) VALUES ($1, $2, $3, $4, $5)';
         await dbclient.query(query, [username, ePassword, email, timestamp, timestamp]);
-        await dbclient.query('COMMIT')
+        await dbclient.query('COMMIT');
         return true;
     }
     catch (e) {
@@ -144,14 +144,14 @@ async function signin(email, password) {
     // query to check if a user exists
     const dbclient = await pool.connect();
     try {
-        await dbclient.query('BEGIN')
+        await dbclient.query('BEGIN');
         let query = 'SELECT password FROM users WHERE email = $1';
         let result = await dbclient.query(query, [email]);
         const isPasswordCorrect = await comparePassword(password, result.rows[0].password); // check hash password against hashed user pw
         return (isPasswordCorrect);
     } catch (e) {
-        await dbclient.query('ROLLBACK')
-        throw e
+        await dbclient.query('ROLLBACK');
+        throw e;
     } finally {
         dbclient.release();
     }
@@ -206,17 +206,13 @@ It will connect with the image handling above.
 async function collectcaptions(imageID) {
     const dbclient = await pool.connect();
     try {
-        dbclient.query('BEGIN')
-        let captions = [];
-        let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1, captionapproval = $2 ORDER BY upvotes DESC';
+        dbclient.query('BEGIN');
+        let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
         let result = await dbclient.query(query, [imageID, 'TRUE']);
-        for(let i = 0; i < result.rows.length; i++) {
-            captions.push(result.rows[i]);
-        }
-        return captions;
+        return result;
     } catch (e) {
-        await dbclient.query('ROLLBACK')
-        throw e
+        await dbclient.query('ROLLBACK');
+        throw e;
     } finally {
         await dbclient.release();
     }
