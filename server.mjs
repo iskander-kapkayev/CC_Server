@@ -166,7 +166,7 @@ app.get('/checkifexists', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0) {
         res.send(false);
     } else {
-        (await checkifexists(username, email)) ? res.send(true): res.send(false);
+        (await checkifexists(username, email)) ? res.status(200).send('OK'): res.status(500).send('NOT OK');
     }
 });
 
@@ -180,7 +180,7 @@ app.get('/register', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
         res.send(false);
     } else {
-        (await insertnewuser(username, password, email)) ? res.send(true): res.send(false);
+        (await insertnewuser(username, password, email)) ? res.status(200).send('OK'): res.status(500).send('NOT OK');
     }
 });
 
@@ -193,7 +193,7 @@ app.get('/signin', async (req, res) => {
     if (email.trim().length === 0 || password.trim().length === 0) {
         res.send(false);
     } else {
-        (await signin(email, password)) ? res.send(true): res.send(false);
+        (await signin(email, password)) ? res.status(200).send('OK'): res.status(500).send('NOT OK');
     }
 });
 
