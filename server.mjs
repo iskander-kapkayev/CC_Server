@@ -210,8 +210,9 @@ async function collectcaptions(imageID) {
         let captions = [];
         let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
         let result = await dbclient.query(query, [imageID, 'TRUE']);
-        for (let i=0; i<5; i++) {
-            captions.push(result.row(i);
+        let maximum = Math.max(result.rows.length, 10); // only want 10 captions max
+        for (let i=0; i < maximum; i++) {
+            captions.push(result.row(i));
         }
         return captions;
     } catch (e) {
