@@ -210,7 +210,10 @@ async function collectcaptions(imageID) {
         let captions = [];
         let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1, captionapproval = $2 ORDER BY upvotes DESC';
         let result = await dbclient.query(query, [imageID, 'TRUE']);
-        return result;
+        for(let i = 0; i < result.rows.length; i++) {
+            captions.push(result.rows[i]);
+        }
+        return captions;
     } catch (e) {
         await dbclient.query('ROLLBACK')
         throw e
