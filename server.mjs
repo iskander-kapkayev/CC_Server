@@ -207,9 +207,13 @@ async function collectcaptions(imageID) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
+        let captions = [];
         let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
         let result = await dbclient.query(query, [imageID, 'TRUE']);
-        return result;
+        for (let i=0; i<5; i++) {
+            captions.push(result.row(i);
+        }
+        return captions;
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
