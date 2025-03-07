@@ -212,7 +212,7 @@ async function collectcaptions(imageID) {
         let result = await dbclient.query(query, [imageID, true]);
         let minimum = Math.min(result.rows.length, 10); // only want 10 captions max
         for (let i=0; i < minimum; i++) {
-            captions.push(result.row[i]);
+            captions.push(result.rows[i]);
         }
         return captions;
     } catch (e) {
