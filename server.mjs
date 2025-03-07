@@ -2,7 +2,7 @@ import express from "express"; // for transactions
 import pg from "pg"; // for pg connection
 import cors from "cors"; // access control optiona
 import bcrypt from "bcryptjs"; // for handling user passwords
-//adsfasdf
+
 /*
 This section is for pg connection handling.
 This code will instantiate the connection to pg server.
@@ -66,19 +66,21 @@ It will connect with the captions later on.
 async function graballimages() {
     const dbclient = await pool.connect();
     try {
-        dbclient.query('BEGIN')
+        dbclient.query('BEGIN');
         let imageURLs = [];
         let query = 'SELECT imageurl FROM images';
         let result = await dbclient.query(query);
+        
         for(let i = 0; i < result.rows.length; i++) {
             imageURLs.push(result.rows[i].imageurl);
         }
+
         return imageURLs;
     } catch (e) {
-        await dbclient.query('ROLLBACK')
-        throw e
+        await dbclient.query('ROLLBACK');
+        throw e;
     } finally {
-        await dbclient.release();
+        dbclient.release();
     }
 }
 
@@ -101,6 +103,7 @@ async function checkifexists(username, email) {
         await dbclient.query('BEGIN');
         let query = 'SELECT email FROM users WHERE email = $1';
         let result = await dbclient.query(query, [email]);
+
         if (result.rows.length === 0) { //meaning unique email address
             query = 'SELECT username FROM users WHERE username = $1';
             result = await dbclient.query(query, [username]);
@@ -108,6 +111,7 @@ async function checkifexists(username, email) {
                 return true;
             }
         }
+
         return false;
     } catch (e) {
         await dbclient.query('ROLLBACK');
@@ -126,12 +130,13 @@ async function insertnewuser(username, password, email) {
         const now = new Date(); // set and convert timestamp
         const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
         const ePassword = await encryptPassword(password); // encrypt password
+        
         let query = 'INSERT INTO users (username, password, email, registeredat, lastlogin) VALUES ($1, $2, $3, $4, $5)';
         await dbclient.query(query, [username, ePassword, email, timestamp, timestamp]);
         await dbclient.query('COMMIT');
+
         return true;
-    }
-    catch (e) {
+    } catch (e) {
         await dbclient.query('ROLLBACK')
         throw e
     } finally {
@@ -147,7 +152,9 @@ async function signin(email, password) {
         await dbclient.query('BEGIN');
         let query = 'SELECT password FROM users WHERE email = $1';
         let result = await dbclient.query(query, [email]);
-        const isPasswordCorrect = await comparePassword(password, result.rows[0].password); // check hash password against hashed user pw
+        
+        // check hash password against hashed user pw
+        const isPasswordCorrect = await comparePassword(password, result.rows[0].password);
         return (isPasswordCorrect);
     } catch (e) {
         await dbclient.query('ROLLBACK');
@@ -208,18 +215,21 @@ async function collectcaptions(imageID) {
     try {
         dbclient.query('BEGIN');
         let captions = [];
-        let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
+        //let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
+        let query = 'SELECT c.captiontext, u.username, c.upvotes FROM captions AS c INNER JOIN users AS u ON u.userid = c.userid WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
         let result = await dbclient.query(query, [imageID, true]);
         let minimum = Math.min(result.rows.length, 10); // only want 10 captions max
-        for (let i=0; i < minimum; i++) {
+        
+        for (let i = 0; i < minimum; i++) {
             captions.push(result.rows[i]);
         }
+
         return captions;
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
     } finally {
-        await dbclient.release();
+        dbclient.release();
     }
 }
 
