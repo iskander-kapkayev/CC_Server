@@ -164,6 +164,25 @@ async function signin(email, password) {
     }
 }
 
+// function to sign in a user based on email and password
+async function collectusername(email) {
+    // query to grab username given an email
+    const dbclient = await pool.connect();
+    try {
+        await dbclient.query('BEGIN');
+        let query = 'SELECT username FROM users WHERE email = $1';
+        let result = await dbclient.query(query, [email]);
+        let username = [];
+        username.push(result.rows[0].username);
+        return username;
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        throw e;
+    } finally {
+        dbclient.release();
+    }
+}
+
 // this get request will check if a user exists
 app.get('/checkifexists', async (req, res) => {
     const username = req.query.username;
@@ -202,6 +221,13 @@ app.get('/signin', async (req, res) => {
     } else {
         (await signin(email, password)) ? res.send({ message: 'Success' }): res.send({ message: 'Failure' });
     }
+});
+
+// this get request will grab captions
+app.get('/findusername', async (req, res) => {
+    const email = req.query.email;
+    const username = await collectusername(email);
+    res.send(username);
 });
 
 /*
