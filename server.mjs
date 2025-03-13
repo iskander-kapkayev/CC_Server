@@ -2,6 +2,7 @@ import express from "express"; // for transactions
 import pg from "pg"; // for pg connection
 import cors from "cors"; // access control optiona
 import bcrypt from "bcryptjs"; // for handling user passwords
+import jwt from 'jsonwebtoken'; // for handling JWT for authorization
 
 /*
 This section is for pg connection handling.
@@ -56,6 +57,36 @@ async function comparePassword(password, hashedPassword) {
           throw error;
     }
 }
+
+/*
+This section is for JWT.
+This will allow user authorization for DB access.
+This JWT is generated after sign-in.
+This JWT is used during the upvote/heart system and for caption uploads.
+JWT not required for other DB operations.
+*/
+
+const secretKey = 'IskanderCaptionContest748!';
+
+// below creates the JWT
+// and houses payload (returned data)
+
+const token = jwt.sign({
+    id: 1, // put something else here if you need it
+    username: 'GFG'// put username from DB here
+}, secretKey, { expiresIn: '1h' });
+
+console.log(token);
+
+// below code verifies the JWT
+// should be used in upvotes and caption uploads
+jwt.verify(token, secretKey, (err, decoded) => {
+    if (err) {
+      console.log('Token is invalid');
+    } else {
+      console.log('Decoded Token:', decoded);
+    }
+});
 
 /*
 This section is for image handling.
@@ -196,8 +227,8 @@ app.get('/checkifexists', async (req, res) => {
     }
 });
 
-// this get request will set a new user into the database
-app.get('/register', async (req, res) => {
+// this post request will set a new user into the database
+app.post('/register', async (req, res) => {
     const username = req.query.username;
     const email = req.query.email;
     const password = req.query.password;
