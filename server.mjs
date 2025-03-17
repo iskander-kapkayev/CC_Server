@@ -103,16 +103,17 @@ app.get('/jwt', async (req, res) => {
 app.get('/jwt/clean', async (req, res) => {
     
     const encToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IktpbmdKb2UiLCJpYXQiOjE3NDIyNTI3MzYsImV4cCI6MTc0MjI1NjMzNn0.c8RGR6BGcf5-kCn_DVqp62QjGdRer5WkNZi6n3xeRXc';
-
+   
     jwt.verify(encToken, secretKey, (err, decoded) => {
         if (err) {
           console.log('Token is invalid');
+          res.send('Failed');
         } else {
           console.log('Decoded Token:', decoded);
+          res.send(decoded);
         }
     });
 
-    res.send();
 });
 
 
