@@ -98,6 +98,24 @@ app.get('/jwt', async (req, res) => {
     res.send(token);
 });
 
+// this get request will test JWT provided
+
+app.get('/jwt/clean', async (req, res) => {
+    
+    const encToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IktpbmdKb2UiLCJpYXQiOjE3NDIyNTI3MzYsImV4cCI6MTc0MjI1NjMzNn0.c8RGR6BGcf5-kCn_DVqp62QjGdRer5WkNZi6n3xeRXc';
+
+    jwt.verify(encToken, secretKey, (err, decoded) => {
+        if (err) {
+          console.log('Token is invalid');
+        } else {
+          console.log('Decoded Token:', decoded);
+        }
+    });
+
+    res.send();
+});
+
+
 /*
 This section is for image handling.
 It will connect with the captions later on.
