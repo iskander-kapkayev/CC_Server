@@ -88,6 +88,16 @@ jwt.verify(token, secretKey, (err, decoded) => {
     }
 });
 
+// this get request will print a JWT, if successful
+app.get('/jwt', async (req, res) => {
+    
+    const token = jwt.sign({
+        username: 'KingJoe'// put username from DB here
+    }, secretKey, { expiresIn: '1h' });
+
+    res.send(token);
+});
+
 /*
 This section is for image handling.
 It will connect with the captions later on.
