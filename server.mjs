@@ -70,11 +70,14 @@ const secretKey = 'IskanderCaptionContest748!';
 
 // below creates the JWT
 // and houses payload (returned data)
+function createToken(userDB) {
+    const token = jwt.sign({
+        username: userDB // put username from DB here
+    }, secretKey, { expiresIn: '1h' });
 
-const token = jwt.sign({
-    id: 1, // put something else here if you need it
-    username: 'GFG'// put username from DB here
-}, secretKey, { expiresIn: '1h' });
+    return token;
+}
+
 
 console.log(token);
 
@@ -88,7 +91,7 @@ jwt.verify(token, secretKey, (err, decoded) => {
     }
 });
 
-// this get request will print a JWT, if successful
+// this get request will test print a JWT, if successful
 app.get('/jwt', async (req, res) => {
     
     const token = jwt.sign({
@@ -215,7 +218,15 @@ async function signin(email, password) {
         
         // check hash password against hashed user pw
         const isPasswordCorrect = await comparePassword(password, result.rows[0].password);
-        return (isPasswordCorrect);
+        if (isPasswordCorrect) {
+            query = 'SELECT username FROM users WHERE email = $1';
+            result = await dbclient.query(query, [email]);
+            const token = createToken(result.rows[0].username);
+            return token;
+        }
+
+        return isPasswordCorrect;
+        
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
@@ -230,8 +241,8 @@ async function collectusername(email) {
     const dbclient = await pool.connect();
     try {
         await dbclient.query('BEGIN');
-        let query = 'SELECT username FROM users WHERE email = $1';
-        let result = await dbclient.query(query, [email]);
+        const query = 'SELECT username FROM users WHERE email = $1';
+        const result = await dbclient.query(query, [email]);
         let username = [];
         username.push(result.rows[0].username);
         return username;
@@ -279,7 +290,14 @@ app.get('/signin', async (req, res) => {
     if (email.trim().length === 0 || password.trim().length === 0) {
         res.send(false);
     } else {
-        (await signin(email, password)) ? res.send({ message: 'Success' }): res.send({ message: 'Failure' });
+        const thisToken = await signin(email, password);
+        if (!thisToken) {
+            // this means an error happened
+            res.send({ message: 'Failure' })
+        } else {
+            // this means a token was made
+            res.send({ token: thisToken });
+        }
     }
 });
 
