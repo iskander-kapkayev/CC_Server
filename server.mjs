@@ -288,10 +288,10 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// this get request will check and log in a user
-app.get('/signin', async (req, res) => {
-    const email = req.query.email;
-    const password = req.query.password;
+// this post request will login and return auth token
+app.post('/signin', async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
 
     // fail if blanks
     if (email.trim().length === 0 || password.trim().length === 0) {
