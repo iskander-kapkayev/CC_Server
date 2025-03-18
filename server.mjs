@@ -11,7 +11,7 @@ This code will instantiate the connection to pg server.
 
 const app = express();
 const port = 3000;
-const { Pool } = pg
+const { Pool } = pg;
 
 const pool = new Pool({
     user: 'postgres.yzktumgeariddxkxyydp',
@@ -88,7 +88,6 @@ jwt.verify(token, secretKey, (err, decoded) => {
       console.log('Decoded Token:', decoded);
     }
 });
-*/
 
 // this get request will test print a JWT, if successful
 app.get('/jwt', async (req, res) => {
@@ -117,7 +116,7 @@ app.get('/jwt/clean', async (req, res) => {
     });
 
 });
-
+*/
 
 /*
 This section is for image handling.
@@ -130,8 +129,8 @@ async function graballimages() {
     try {
         dbclient.query('BEGIN');
         let imageURLs = [];
-        let query = 'SELECT imageurl FROM images';
-        let result = await dbclient.query(query);
+        const query = 'SELECT imageurl FROM images';
+        const result = await dbclient.query(query);
         
         for(let i = 0; i < result.rows.length; i++) {
             imageURLs.push(result.rows[i].imageurl);
@@ -148,7 +147,7 @@ async function graballimages() {
 
 // this get request will provide the imageURLs from the database!
 app.get('/graballimages', async (req, res) => {
-    let imageURLs = await graballimages();
+    const imageURLs = await graballimages();
     res.send(imageURLs);
 });
 
@@ -193,7 +192,7 @@ async function insertnewuser(username, password, email) {
         const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
         const ePassword = await encryptPassword(password); // encrypt password
         
-        let query = 'INSERT INTO users (username, password, email, registeredat, lastlogin) VALUES ($1, $2, $3, $4, $5)';
+        const query = 'INSERT INTO users (username, password, email, registeredat, lastlogin) VALUES ($1, $2, $3, $4, $5)';
         await dbclient.query(query, [username, ePassword, email, timestamp, timestamp]);
         await dbclient.query('COMMIT');
 
@@ -262,7 +261,28 @@ app.get('/checkifexists', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0) {
         res.send(false);
     } else {
-        (await checkifexists(username, email)) ? res.send({ message: 'Success' }): res.send({ message: 'Failure' });
+        if (await checkifexists(username, email)) {
+            res.send({ message: 'Success' });
+        } else {
+            res.send({ message: 'Failure' });
+        } 
+    }
+});
+
+// this get request will check if a user exists
+app.get('/checkifexistspost', async (req, res) => {
+    const username = req.body.username;
+    const email = req.body.email;
+
+    // fail if blanks
+    if (username.trim().length === 0 || email.trim().length === 0) {
+        res.send(false);
+    } else {
+        if (await checkifexists(username, email)) {
+            res.send({ message: 'Success' });
+        } else {
+            res.send({ message: 'Failure' });
+        } 
     }
 });
 
@@ -276,7 +296,29 @@ app.get('/register', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
         res.send(false);
     } else {
-        (await insertnewuser(username, password, email)) ? res.send({ message: 'Success' }): res.send({ message: 'Failure' });
+        if (await insertnewuser(username, password, email)) {
+            res.send({ message: 'Success' });
+        } else {
+            res.send({ message: 'Failure' });
+        } 
+    }
+});
+
+// this post request will set a new user into the database
+app.post('/registerpost', async (req, res) => {
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    // fail if blanks
+    if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
+        res.send(false);
+    } else {
+        if (await insertnewuser(username, password, email)) {
+            res.send({ message: 'Success' });
+        } else {
+            res.send({ message: 'Failure' });
+        } 
     }
 });
 
@@ -319,9 +361,9 @@ async function collectcaptions(imageID) {
         dbclient.query('BEGIN');
         let captions = [];
         //let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
-        let query = 'SELECT c.captiontext, u.username, c.upvotes FROM captions AS c INNER JOIN users AS u ON u.userid = c.userid WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
-        let result = await dbclient.query(query, [imageID, true]);
-        let minimum = Math.min(result.rows.length, 10); // only want 10 captions max
+        const query = 'SELECT c.captiontext, u.username, c.upvotes FROM captions AS c INNER JOIN users AS u ON u.userid = c.userid WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
+        const result = await dbclient.query(query, [imageID, true]);
+        const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
         
         for (let i = 0; i < minimum; i++) {
             captions.push(result.rows[i]);
@@ -339,7 +381,7 @@ async function collectcaptions(imageID) {
 // this get request will grab captions
 app.get('/collectcaptions', async (req, res) => {
     const imageID = req.query.imageid;
-    let captions = await collectcaptions(imageID);
+    const captions = await collectcaptions(imageID);
     res.send(captions);
 });
 
