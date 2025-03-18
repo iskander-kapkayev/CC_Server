@@ -267,7 +267,7 @@ app.get('/checkifexists', async (req, res) => {
 });
 
 // this post request will set a new user into the database
-app.post('/register', async (req, res) => {
+app.get('/register', async (req, res) => {
     const username = req.query.username;
     const email = req.query.email;
     const password = req.query.password;
