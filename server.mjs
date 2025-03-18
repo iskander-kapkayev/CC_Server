@@ -78,11 +78,9 @@ function createToken(userDB) {
     return token;
 }
 
-
-console.log(token);
-
 // below code verifies the JWT
 // should be used in upvotes and caption uploads
+/*
 jwt.verify(token, secretKey, (err, decoded) => {
     if (err) {
       console.log('Token is invalid');
@@ -90,6 +88,7 @@ jwt.verify(token, secretKey, (err, decoded) => {
       console.log('Decoded Token:', decoded);
     }
 });
+*/
 
 // this get request will test print a JWT, if successful
 app.get('/jwt', async (req, res) => {
