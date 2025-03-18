@@ -29,6 +29,7 @@ const corsOptions ={
 }
 
 app.use(cors(corsOptions));
+app.use(express.json());
 
 /*
 This section is for password encryption handling.
