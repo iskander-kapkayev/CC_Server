@@ -270,7 +270,7 @@ app.get('/checkifexists', async (req, res) => {
 });
 
 // this get request will check if a user exists
-app.get('/checkifexistspost', async (req, res) => {
+app.post('/checkifexistspost', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
 
