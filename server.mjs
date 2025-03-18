@@ -254,24 +254,7 @@ async function collectusername(email) {
 }
 
 // this get request will check if a user exists
-app.get('/checkifexists', async (req, res) => {
-    const username = req.query.username;
-    const email = req.query.email;
-
-    // fail if blanks
-    if (username.trim().length === 0 || email.trim().length === 0) {
-        res.send(false);
-    } else {
-        if (await checkifexists(username, email)) {
-            res.send({ message: 'Success' });
-        } else {
-            res.send({ message: 'Failure' });
-        } 
-    }
-});
-
-// this get request will check if a user exists
-app.post('/checkifexistspost', async (req, res) => {
+app.post('/checkifexists', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
 
@@ -288,25 +271,7 @@ app.post('/checkifexistspost', async (req, res) => {
 });
 
 // this post request will set a new user into the database
-app.get('/register', async (req, res) => {
-    const username = req.query.username;
-    const email = req.query.email;
-    const password = req.query.password;
-
-    // fail if blanks
-    if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
-        res.send(false);
-    } else {
-        if (await insertnewuser(username, password, email)) {
-            res.send({ message: 'Success' });
-        } else {
-            res.send({ message: 'Failure' });
-        } 
-    }
-});
-
-// this post request will set a new user into the database
-app.post('/registerpost', async (req, res) => {
+app.post('/register', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
