@@ -4,6 +4,7 @@
         "src": "server.mjs",
         "use": "@vercel/node"
     }],
+    "rewrites": [{ "source": "/", "destination": "server.mjs"}],
     "headers": [
     {
       "source": "/api/(.*)",
