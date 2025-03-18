@@ -329,7 +329,7 @@ async function collectcaptions(imageID) {
         dbclient.query('BEGIN');
         let captions = [];
         //let query = 'SELECT captiontext, userid, upvotes FROM captions WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
-        const query = 'SELECT c.captiontext, u.username, c.upvotes FROM captions AS c INNER JOIN users AS u ON u.userid = c.userid WHERE imageid = $1 AND captionapproval = $2 ORDER BY upvotes DESC';
+        const query = 'SELECT c.captiontext, u.username, v.votecount FROM captions AS c INNER JOIN users AS u ON u.userid = c.userid INNER JOIN vote_view AS v ON v.captionid = c.captionid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
         const result = await dbclient.query(query, [imageID, true]);
         const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
         
