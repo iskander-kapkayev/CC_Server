@@ -216,8 +216,12 @@ async function signin(email, password) {
     try {
         await dbclient.query('BEGIN');
         let query = 'SELECT password FROM users WHERE email = $1';
-        /* add email not found handling */
         let result = await dbclient.query(query, [email]);
+        
+        if (result.rows.length === 0) {
+            // this means that an incorrect email address was entered
+            return false;
+        }
         
         // check hash password against hashed user pw
         const isPasswordCorrect = await comparePassword(password, result.rows[0].password);
@@ -264,7 +268,7 @@ app.post('/checkifexists', async (req, res) => {
 
     // fail if blanks
     if (username.trim().length === 0 || email.trim().length === 0) {
-        res.send(false);
+        res.send({ message: 'Failure' });
     } else {
         if (await checkifexists(username, email)) {
             res.send({ message: 'Success' });
@@ -282,7 +286,7 @@ app.post('/register', async (req, res) => {
 
     // fail if blanks
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
-        res.send(false);
+        res.send({ message: 'Failure' });
     } else {
         if (await insertnewuser(username, password, email)) {
             res.send({ message: 'Success' });
@@ -299,7 +303,7 @@ app.post('/signin', async (req, res) => {
 
     // fail if blanks
     if (email.trim().length === 0 || password.trim().length === 0) {
-        res.send(false);
+        res.send({ message: 'Failure' });
     } else {
         const thisToken = await signin(email, password);
         if (!thisToken) {
@@ -312,12 +316,14 @@ app.post('/signin', async (req, res) => {
     }
 });
 
-// this get request will grab captions
+/*
+// this get request will grab a username given an email (not in use)
 app.get('/findusername', async (req, res) => {
     const email = req.query.email;
     const username = await collectusername(email);
     res.send(username);
 });
+*/
 
 /*
 This section is for caption handling.
