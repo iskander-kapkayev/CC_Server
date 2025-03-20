@@ -32,6 +32,7 @@ app.use(cors(corsOptions));
 */
 
 app.use(express.json()); // allows for json post requests
+app.options('*', function (req,res) { res.sendStatus(200); }); // for cors options issues
 
 /*
 This section is for password encryption handling.
