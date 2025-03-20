@@ -203,7 +203,7 @@ async function insertnewuser(username, password, email) {
         return true;
     } catch (e) {
         await dbclient.query('ROLLBACK')
-        throw e
+        throw e;
     } finally {
         dbclient.release()
     }
@@ -216,6 +216,7 @@ async function signin(email, password) {
     try {
         await dbclient.query('BEGIN');
         let query = 'SELECT password FROM users WHERE email = $1';
+        /* add email not found handling */
         let result = await dbclient.query(query, [email]);
         
         // check hash password against hashed user pw
