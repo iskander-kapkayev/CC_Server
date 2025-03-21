@@ -378,9 +378,35 @@ async function upvoting(captionText, captionAuthor, authUser) {
             // if no, then add as new entry
             // if yes, then remove previous entry
         
-        const query = 'SELECT c.captiontext, u.username, COALESCE(v.votecount, 0) as votecount FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid INNER JOIN vote_view AS v ON v.captionid = c.captionid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
-        const result = await dbclient.query(query, [imageID, true]);
-        
+        let query = 'SELECT userid FROM users WHERE username = $1'
+        let result = await dbclient.query(query, [authUser]);
+        const authUserID = result.rows[0]; // set authUser userid
+
+        query = 'SELECT userid FROM users WHERE username = $1'
+        result = await dbclient.query(query, [captionAuthor]);
+        const captionAuthorID = result.rows[0]; // set captionAuthor userid
+
+        query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2'
+        result = await dbclient.query(query, [captionText, captionAuthorID]);
+        const captionTextID = result.rows[0]; // set captionText captionid
+
+        query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2'
+        result = await dbclient.query(query, [captionTextID, authUserID]);
+        if (result.rows.length === 0) {
+            // authUser has not voted for this caption yet
+            // add their vote to the table
+            query = 'INSERT INTO voting (captionid, userid) VALUES ($1, $2)';
+            await dbclient.query(query, [captionTextID, authUserID]);
+            await dbclient.query('COMMIT');
+        } else {
+            // authUser has voted for this caption
+            // remove their vote from the table
+            query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2';
+            await dbclient.query(query, [captionTextID, authUserID]);
+            await dbclient.query('COMMIT');
+        }
+        return true;
+
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
@@ -393,23 +419,22 @@ async function upvoting(captionText, captionAuthor, authUser) {
 app.post('/upvotecaption', async (req, res) => {
     const captionText = req.body.captiontext; // grab caption's text
     const captionAuthor = req.body.captionuser; // grab caption's author
-    const checkToken = req.headers['authorization']; // check token
+    const checkToken = req.headers['authorization']; // grab token
 
     // verify that token is an auth user
-    jwt.verify(checkToken, process.env.SECRETKEY, (err, decoded) => {
+    jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         if (err) {
             // token did not work
             res.send({ message: 'Failure' })
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
-
+            const upvote = await upvoting(captionText, captionAuthor, authUser);
+            if (upvote) {
+                res.send({ message: 'Success' });
+            }
         }
     });
-
-    
-    const captions = await collectcaptions(imageID);
-    res.send(captions);
 });
 
 // port listen for the end
