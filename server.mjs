@@ -70,14 +70,12 @@ This JWT is used during the upvote/heart system and for caption uploads.
 JWT not required for other DB operations.
 */
 
-const secretKey = 'IskanderCaptionContest748!';
-
 // below creates the JWT
 // and houses payload (returned data)
 function createToken(userDB) {
     const token = jwt.sign({
         username: userDB // put username from DB here
-    }, secretKey, { expiresIn: '1h' });
+    }, process.env.SECRETKEY, { expiresIn: '1h' });
 
     return token;
 }
@@ -242,7 +240,8 @@ async function signin(email, password) {
     }
 }
 
-// function to sign in a user based on email and password
+/*
+// function to collect a username (not in use)
 async function collectusername(email) {
     // query to grab username given an email
     const dbclient = await pool.connect();
@@ -260,6 +259,7 @@ async function collectusername(email) {
         dbclient.release();
     }
 }
+*/
 
 // this get request will check if a user exists
 app.post('/checkifexists', async (req, res) => {
@@ -278,7 +278,7 @@ app.post('/checkifexists', async (req, res) => {
     }
 });
 
-// this post request will set a new user into the database
+// this post request will register a new user into the database
 app.post('/register', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
