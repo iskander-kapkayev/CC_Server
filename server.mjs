@@ -1,6 +1,6 @@
 import express from "express"; // for transactions
 import pg from "pg"; // for pg connection
-import cors from "cors"; // access control optiona
+//import cors from "cors"; // access control optiona
 import bcrypt from "bcryptjs"; // for handling user passwords
 import jwt from 'jsonwebtoken'; // for handling JWT for authorization
 
@@ -10,15 +10,15 @@ This code will instantiate the connection to pg server.
 */
 
 const app = express();
-const port = 3000;
+const port = process.env.DB_PORT;
 const { Pool } = pg;
 
 const pool = new Pool({
-    user: 'postgres.yzktumgeariddxkxyydp',
-    host: 'aws-0-us-east-1.pooler.supabase.com',
-    database: 'postgres',
-    password: 'V21Z4YH0iARwVAoM',
-    port: 6543,
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASS,
+    port: process.env.DB_PORT,
     idleTimeoutMillis: 300
 });
 
@@ -83,7 +83,7 @@ function createToken(userDB) {
 // below code verifies the JWT
 // should be used in upvotes and caption uploads
 /*
-jwt.verify(token, secretKey, (err, decoded) => {
+jwt.verify(token, process.env.SECRETKEY, (err, decoded) => {
     if (err) {
       console.log('Token is invalid');
     } else {
