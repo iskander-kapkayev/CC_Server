@@ -1,7 +1,7 @@
-import express from "express"; // for transactions
-import pg from "pg"; // for pg connection
-//import cors from "cors"; // access control optiona
-import bcrypt from "bcryptjs"; // for handling user passwords
+import express from 'express'; // for transactions
+import pg from 'pg'; // for pg connection
+//import cors from 'cors'; // access control optiona
+import bcrypt from 'bcryptjs'; // for handling user passwords
 import jwt from 'jsonwebtoken'; // for handling JWT for authorization
 
 /*
@@ -41,12 +41,12 @@ User passwords will be encrypted in the DB.
 
 // this async function will provide an encryption
 async function encryptPassword(password) {
-  const salt = await bcrypt.genSalt(10); // Defines how much time is needed to calculate a single bcrypt hash.              
-  try {                  // The higher the cost factor, the more hashing rounds are done.
+  const salt = await bcrypt.genSalt(10); // Defines time needed to calculate a single bcrypt hash              
+  try {                                  // The higher #, the more hashing rounds are done
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
   } catch (error) {
-    console.error("Error encrypting password:", error);
+    console.error('Error encrypting password:', error);
     throw error;
   }
 }
@@ -57,7 +57,7 @@ async function comparePassword(password, hashedPassword) {
       const isMatch = await bcrypt.compare(password, hashedPassword);
       return isMatch;
     } catch (error) {
-          console.error("Error comparing passwords:", error);
+          console.error('Error comparing passwords:', error);
           throw error;
     }
 }
@@ -96,7 +96,7 @@ app.get('/jwt', async (req, res) => {
     
     const token = jwt.sign({
         username: 'KingJoe'// put username from DB here
-    }, secretKey, { expiresIn: '1h' });
+    }, process.env.SECRETKEY, { expiresIn: '1h' });
 
     res.send(token);
 });
@@ -107,7 +107,7 @@ app.get('/jwt/clean', async (req, res) => {
     
     const encToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IktpbmdKb2UiLCJpYXQiOjE3NDIyNTI3MzYsImV4cCI6MTc0MjI1NjMzNn0.c8RGR6BGcf5-kCn_DVqp62QjGdRer5WkNZi6n3xeRXc';
    
-    jwt.verify(encToken, secretKey, (err, decoded) => {
+    jwt.verify(encToken, process.env.SECRETKEY, (err, decoded) => {
         if (err) {
           console.log('Token is invalid');
           res.send('Failed');
@@ -221,17 +221,18 @@ async function signin(email, password) {
             return false;
         }
         
-        // check hash password against hashed user pw
+        // check hash password against hashed user pw for correct email
         const isPasswordCorrect = await comparePassword(password, result.rows[0].password);
+        
         if (isPasswordCorrect) {
             query = 'SELECT username FROM users WHERE email = $1';
             result = await dbclient.query(query, [email]);
             const token = createToken(result.rows[0].username);
             return token;
+        } else {
+            return isPasswordCorrect;
         }
 
-        return isPasswordCorrect;
-        
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
@@ -327,7 +328,9 @@ app.get('/findusername', async (req, res) => {
 
 /*
 This section is for caption handling.
-It will connect with the image handling above.
+Users will be able to:
+1) upload a new caption (auto approved)
+2) upvote an existing caption
 */
 
 // this function will query and get all the captions available
@@ -357,6 +360,54 @@ async function collectcaptions(imageID) {
 // this get request will grab captions
 app.get('/collectcaptions', async (req, res) => {
     const imageID = req.query.imageid;
+    const captions = await collectcaptions(imageID);
+    res.send(captions);
+});
+
+
+// this function will assist in upvoting
+async function upvoting(captionText, captionAuthor, authUser) {
+    const dbclient = await pool.connect();
+    try {
+        dbclient.query('BEGIN');
+        
+        //check supabase for the query steps
+        // first query users table to find the authors userID
+        // next query captions table to find captionID for the caption text and author that match
+        // finally check if authUser has already upvoted this captionID in voting table
+            // if no, then add as new entry
+            // if yes, then remove previous entry
+        
+        const query = 'SELECT c.captiontext, u.username, COALESCE(v.votecount, 0) as votecount FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid INNER JOIN vote_view AS v ON v.captionid = c.captionid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
+        const result = await dbclient.query(query, [imageID, true]);
+        
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        throw e;
+    } finally {
+        dbclient.release();
+    }
+}
+
+// this post request will allow an upvote by user
+app.post('/upvotecaption', async (req, res) => {
+    const captionText = req.body.captiontext; // grab caption's text
+    const captionAuthor = req.body.captionuser; // grab caption's author
+    const checkToken = req.headers['authorization']; // check token
+
+    // verify that token is an auth user
+    jwt.verify(checkToken, process.env.SECRETKEY, (err, decoded) => {
+        if (err) {
+            // token did not work
+            res.send({ message: 'Failure' })
+        } else {
+            // token did work and username can be grabbed
+            const authUser = decoded.username;
+
+        }
+    });
+
+    
     const captions = await collectcaptions(imageID);
     res.send(captions);
 });
