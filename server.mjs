@@ -380,18 +380,15 @@ async function upvoting(captionText, captionAuthor, authUser) {
         
         let query = 'SELECT userid FROM users WHERE username = $1';
         let result = await dbclient.query(query, [authUser]);
-        const authUserID = result.rows[0]; // set authUser userid
-        return authUserID;
+        const authUserID = result.rows[0].userid; // set authUser userid
         
         query = 'SELECT userid FROM users WHERE username = $1';
         result = await dbclient.query(query, [captionAuthor]);
-        const captionAuthorID = parseInt(result.rows[0]); // set captionAuthor userid
-        return captionAuthorID;
+        const captionAuthorID = result.rows[0].userid; // set captionAuthor userid
 
         query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2';
         result = await dbclient.query(query, [captionText, captionAuthorID]);
-        const captionTextID = parseInt(result.rows[0]); // set captionText captionid
-        return captionTextID;
+        const captionTextID = result.rows[0].captionid; // set captionText captionid
 
         query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
         result = await dbclient.query(query, [captionTextID, authUserID]);
