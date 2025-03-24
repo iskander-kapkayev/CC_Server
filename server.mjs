@@ -423,6 +423,7 @@ app.post('/upvotecaption', async (req, res) => {
 
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
+        res.send({ message: decoded });
         if (err) {
             // token did not work
             res.send({ message: 'Failure' });
