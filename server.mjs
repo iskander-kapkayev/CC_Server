@@ -421,11 +421,13 @@ app.post('/upvotecaption', async (req, res) => {
     const captionAuthor = req.body.captionuser; // grab caption's author
     const checkToken = req.headers['authorization']; // grab token
 
+    res.send({ message: captionText });
+
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         if (err) {
             // token did not work
-            res.send({ message: 'Failure' })
+            res.send({ message: 'Failure' });
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
