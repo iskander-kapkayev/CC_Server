@@ -431,7 +431,6 @@ app.post('/upvotecaption', async (req, res) => {
             // token did work and username can be grabbed
             const authUser = decoded.username;
             const upvote = await upvoting(captionText, captionAuthor, authUser);
-            res.send({ message: upvote });
             if (upvote) {
                 res.send({ message: 'Success' });
             }
