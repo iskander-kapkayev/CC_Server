@@ -380,15 +380,18 @@ async function upvoting(captionText, captionAuthor, authUser) {
         
         let query = 'SELECT userid FROM users WHERE username = $1';
         let result = await dbclient.query(query, [authUser]);
-        const authUserID = parseInt(result.rows[0]); // set authUser userid
+        const authUserID = result.rows[0]; // set authUser userid
+        return authUserID;
         
         query = 'SELECT userid FROM users WHERE username = $1';
         result = await dbclient.query(query, [captionAuthor]);
         const captionAuthorID = parseInt(result.rows[0]); // set captionAuthor userid
+        return captionAuthorID;
 
         query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2';
         result = await dbclient.query(query, [captionText, captionAuthorID]);
         const captionTextID = parseInt(result.rows[0]); // set captionText captionid
+        return captionTextID;
 
         query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
         result = await dbclient.query(query, [captionTextID, authUserID]);
@@ -423,7 +426,7 @@ app.post('/upvotecaption', async (req, res) => {
 
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
-        res.send({ message: decoded.username });
+        
         if (err) {
             // token did not work
             res.send({ message: 'Failure' });
@@ -431,6 +434,7 @@ app.post('/upvotecaption', async (req, res) => {
             // token did work and username can be grabbed
             const authUser = decoded.username;
             const upvote = await upvoting(captionText, captionAuthor, authUser);
+            res.send({ message: upvote });
             if (upvote) {
                 res.send({ message: 'Success' });
             }
