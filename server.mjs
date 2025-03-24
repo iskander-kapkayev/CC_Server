@@ -380,19 +380,19 @@ async function upvoting(captionText, captionAuthor, authUser) {
         
         let query = 'SELECT userid FROM users WHERE username = $1'
         let result = await dbclient.query(query, [authUser]);
-        const authUserID = result.rows[0]; // set authUser userid
-
+        const authUserID = parseInt(result.rows[0]); // set authUser userid
+        
         query = 'SELECT userid FROM users WHERE username = $1'
         result = await dbclient.query(query, [captionAuthor]);
-        const captionAuthorID = result.rows[0]; // set captionAuthor userid
+        const captionAuthorID = parseInt(result.rows[0]); // set captionAuthor userid
 
         query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2'
         result = await dbclient.query(query, [captionText, captionAuthorID]);
-        const captionTextID = result.rows[0]; // set captionText captionid
+        const captionTextID = parseInt(result.rows[0]); // set captionText captionid
 
         query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2'
         result = await dbclient.query(query, [captionTextID, authUserID]);
-        if (result.rows.length === 0) {
+        if (result.rows.length === 0) { 
             // authUser has not voted for this caption yet
             // add their vote to the table
             query = 'INSERT INTO voting (captionid, userid) VALUES ($1, $2)';
