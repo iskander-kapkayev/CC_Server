@@ -419,7 +419,7 @@ async function upvoting(captionText, captionAuthor, authUser) {
 app.post('/upvotecaption', async (req, res) => {
     const captionText = req.body.captiontext; // grab caption's text
     const captionAuthor = req.body.captionuser; // grab caption's author
-    const checkToken = req.headers['authorization']; // grab token
+    const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
 
     res.send({ message: checkToken });
 
