@@ -378,19 +378,19 @@ async function upvoting(captionText, captionAuthor, authUser) {
             // if no, then add as new entry
             // if yes, then remove previous entry
         
-        let query = 'SELECT userid FROM users WHERE username = $1'
+        let query = 'SELECT userid FROM users WHERE username = $1';
         let result = await dbclient.query(query, [authUser]);
         const authUserID = parseInt(result.rows[0]); // set authUser userid
         
-        query = 'SELECT userid FROM users WHERE username = $1'
+        query = 'SELECT userid FROM users WHERE username = $1';
         result = await dbclient.query(query, [captionAuthor]);
         const captionAuthorID = parseInt(result.rows[0]); // set captionAuthor userid
 
-        query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2'
+        query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2';
         result = await dbclient.query(query, [captionText, captionAuthorID]);
         const captionTextID = parseInt(result.rows[0]); // set captionText captionid
 
-        query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2'
+        query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
         result = await dbclient.query(query, [captionTextID, authUserID]);
         if (result.rows.length === 0) { 
             // authUser has not voted for this caption yet
