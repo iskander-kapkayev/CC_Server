@@ -438,6 +438,58 @@ app.post('/upvotecaption', async (req, res) => {
     });
 });
 
+// this function will assist in upvoting
+async function captioning(captionText, imageID, authUser) {
+    const dbclient = await pool.connect();
+    try {
+        dbclient.query('BEGIN');
+        
+        // check supabase for the query steps
+        // first query users table to find userID for authUser
+        // finally, insert new caption into captions table
+        // userid, imageid, captiontext, captionapproval (default true)
+        
+        let query = 'SELECT userid FROM users WHERE username = $1';
+        let result = await dbclient.query(query, [authUser]);
+        const authUserID = result.rows[0].userid; // set authUser userid
+        
+        query = 'INSERT INTO captions (userid, imageid, captiontext, captionapproval) VALUES ($1, $2, $3)';
+        await dbclient.query(query, [authUserID, imageID, captionText, true]);
+        await dbclient.query('COMMIT');
+
+        return true;
+
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        throw e;
+    } finally {
+        dbclient.release();
+    }
+}
+
+// this post request will allow a user to post a caption
+app.post('/addnewcaption', async (req, res) => {
+    const captionText = req.body.captiontext; // grab caption's text
+    const imageID = req.body.imageid; // grab image id
+    const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
+
+    // verify that token is an auth user
+    jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
+        
+        if (err) {
+            // token did not work
+            res.send({ message: 'Failure' });
+        } else {
+            // token did work and username can be grabbed
+            const authUser = decoded.username;
+            const writeCaption = await captioning(captionText, imageID, authUser);
+            if (writeCaption) {
+                res.send({ message: 'Success' });
+            }
+        }
+    });
+});
+
 // port listen for the end
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
