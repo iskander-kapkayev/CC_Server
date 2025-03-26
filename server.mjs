@@ -366,7 +366,7 @@ app.get('/collectcaptions', async (req, res) => {
 
 
 // this function will assist in upvoting
-async function upvoting(captionText, captionAuthor, authUser) {
+async function voting(captionText, captionAuthor, authUser, captionType) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
@@ -390,19 +390,19 @@ async function upvoting(captionText, captionAuthor, authUser) {
         result = await dbclient.query(query, [captionText, captionAuthorID]);
         const captionTextID = result.rows[0].captionid; // set captionText captionid
 
-        query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
-        result = await dbclient.query(query, [captionTextID, authUserID]);
+        query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2 AND type = $3';
+        result = await dbclient.query(query, [captionTextID, authUserID, captionType]);
         if (result.rows.length === 0) { 
             // authUser has not voted for this caption yet
             // add their vote to the table
-            query = 'INSERT INTO voting (captionid, userid) VALUES ($1, $2)';
-            await dbclient.query(query, [captionTextID, authUserID]);
+            query = 'INSERT INTO voting (captionid, userid, type) VALUES ($1, $2, $3)';
+            await dbclient.query(query, [captionTextID, authUserID, captionType]);
             await dbclient.query('COMMIT');
         } else {
             // authUser has voted for this caption
             // remove their vote from the table
-            query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2';
-            await dbclient.query(query, [captionTextID, authUserID]);
+            query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2 AND type = $3';
+            await dbclient.query(query, [captionTextID, authUserID, captionType]);
             await dbclient.query('COMMIT');
         }
         return true;
@@ -416,9 +416,10 @@ async function upvoting(captionText, captionAuthor, authUser) {
 }
 
 // this post request will allow an upvote by user
-app.post('/upvotecaption', async (req, res) => {
+app.post('/votecaption', async (req, res) => {
     const captionText = req.body.captiontext; // grab caption's text
     const captionAuthor = req.body.captionuser; // grab caption's author
+    const captionType = req.body.type; // grab type of vote (upvote or downvote)
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
 
     // verify that token is an auth user
@@ -430,7 +431,7 @@ app.post('/upvotecaption', async (req, res) => {
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
-            const upvote = await upvoting(captionText, captionAuthor, authUser);
+            const upvote = await voting(captionText, captionAuthor, authUser, captionType);
             if (upvote) {
                 res.send({ message: 'Success' });
             }
