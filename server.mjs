@@ -392,6 +392,7 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
 
         query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
         result = await dbclient.query(query, [captionTextID, authUserID]);
+
         if (result.rows.length === 0) { 
             // authUser has not voted for this caption yet
             // add their vote to the table
@@ -402,7 +403,7 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
             // authUser has voted for this caption
             // remove their vote from the table
             query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2';
-            await dbclient.query(query, [captionTextID, authUserID, captionType]);
+            await dbclient.query(query, [captionTextID, authUserID]);
             await dbclient.query('COMMIT');
 
             // after removing their initial vote, change their vote
@@ -439,6 +440,8 @@ app.post('/votecaption', async (req, res) => {
             const voted = await voting(captionText, captionAuthor, authUser, captionType);
             if (voted) {
                 res.send({ message: 'Success' });
+            } else {
+                res.send({ message: 'Failure' });
             }
         }
     });
