@@ -225,6 +225,13 @@ async function signin(email, password) {
         const isPasswordCorrect = await comparePassword(password, result.rows[0].password);
         
         if (isPasswordCorrect) {
+            // update lastlogin time
+            const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
+            query = 'UPDATE users SET lastlogin = $1 WHERE email = $2';
+            await dbclient.query(query, [timestamp, email]);
+            await dbclient.query('COMMIT');
+
+            // now create usertoken
             query = 'SELECT username FROM users WHERE email = $1';
             result = await dbclient.query(query, [email]);
             const token = createToken(result.rows[0].username);
