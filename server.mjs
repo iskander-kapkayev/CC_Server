@@ -399,20 +399,16 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
             query = 'INSERT INTO voting (captionid, userid, type) VALUES ($1, $2, $3)';
             await dbclient.query(query, [captionTextID, authUserID, captionType]);
             await dbclient.query('COMMIT');
+            return 'added';
         } else {
             // authUser has voted for this caption
             // remove their vote from the table
             query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2';
             await dbclient.query(query, [captionTextID, authUserID]);
             await dbclient.query('COMMIT');
-
-            // after removing their initial vote, change their vote
-            query = 'INSERT INTO voting (captionid, userid, type) VALUES ($1, $2, $3)';
-            await dbclient.query(query, [captionTextID, authUserID, captionType]);
-            await dbclient.query('COMMIT');
+            return 'removed'
         }
-        return true;
-
+       
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
@@ -438,8 +434,10 @@ app.post('/votecaption', async (req, res) => {
             // token did work and username can be grabbed
             const authUser = decoded.username;
             const voted = await voting(captionText, captionAuthor, authUser, captionType);
-            if (voted) {
-                res.send({ message: 'Success' });
+            if (voted == 'added') {
+                res.send({ message: 'Added' });
+            } else if (voted == 'removed') {
+                res.send({ message: 'Removed' });
             } else {
                 res.send({ message: 'Failure' });
             }
