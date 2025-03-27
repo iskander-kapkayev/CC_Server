@@ -457,10 +457,10 @@ async function captioning(captionText, imageID, authUser) {
         // userid, imageid, captiontext, captionapproval (default true)
         
         let query = 'SELECT userid FROM users WHERE username = $1';
-        let result = await dbclient.query(query, [authUser]);
+        const result = await dbclient.query(query, [authUser]);
         const authUserID = result.rows[0].userid; // set authUser userid
         
-        query = 'INSERT INTO captions (userid, imageid, captiontext, captionapproval) VALUES ($1, $2, $3)';
+        query = 'INSERT INTO captions (userid, imageid, captiontext, captionapproval) VALUES ($1, $2, $3, $4)';
         await dbclient.query(query, [authUserID, imageID, captionText, true]);
         await dbclient.query('COMMIT');
 
