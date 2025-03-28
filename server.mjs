@@ -426,7 +426,7 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
 
 // this post request will allow an upvote by user
 app.post('/votecaption', async (req, res) => {
-    const captionText = req.body.captiontext; // grab caption's text
+    const captionText = JSON.stringify(req.body.captiontext); // grab caption's text
     const captionAuthor = req.body.captionuser; // grab caption's author
     const captionType = req.body.type; // grab type of vote (upvote or downvote)
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
