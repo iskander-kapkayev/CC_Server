@@ -230,7 +230,7 @@ async function signin(email, password) {
             const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
             query = 'UPDATE users SET lastlogin = $1 WHERE email = $2';
             await dbclient.query(query, [timestamp, email]);
-            await dbclient.query('COMMIT'); added
+            await dbclient.query('COMMIT'); //added
 
             // now create usertoken
             query = 'SELECT username FROM users WHERE email = $1';
