@@ -425,7 +425,7 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
             query = 'DELETE FROM voting WHERE captionid = $1 AND userid = $2';
             await dbclient.query(query, [captionTextID, authUserID]);
             await dbclient.query('COMMIT');
-            return 'removed'
+            return 'removed';
         }
        
     } catch (e) {
