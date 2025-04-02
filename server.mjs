@@ -130,15 +130,17 @@ async function graballimages() {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
-        let imageURLs = [];
+        // let imageURLs = [];
         const query = 'SELECT imageurl FROM images';
         const result = await dbclient.query(query);
         
+        /*
         for(let i = 0; i < result.rows.length; i++) {
             imageURLs.push(result.rows[i].imageurl);
         }
+        */
 
-        return imageURLs;
+        return result;
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
