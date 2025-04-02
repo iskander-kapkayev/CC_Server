@@ -47,7 +47,8 @@ async function encryptPassword(password) {
     return hashedPassword;
   } catch (error) {
     console.error('Error encrypting password:', error);
-    throw error;
+    console.log(e);
+    return false;
   }
 }
 
@@ -57,8 +58,8 @@ async function comparePassword(password, hashedPassword) {
       const isMatch = await bcrypt.compare(password, hashedPassword);
       return isMatch;
     } catch (error) {
-          console.error('Error comparing passwords:', error);
-          throw error;
+        console.log(e);
+        return false;
     }
 }
 
@@ -146,7 +147,8 @@ async function graballimages() {
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        return ({ message: 'Failure' });
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
@@ -154,14 +156,7 @@ async function graballimages() {
 
 // this get request will provide the imageURLs from the database!
 app.get('/graballimages', async (req, res) => {
-    let imageURLs = await graballimages();
-    let retries = 0;
-
-    while (retries < 5 && imageURLs.message == 'Failure') {
-        imageURLs = await graballimages();
-        retries++;
-    } // break if too many retries or imageURLs not failure anymore
-
+    const imageURLs = await graballimages();
     res.send(imageURLs);
 });
 
@@ -190,7 +185,8 @@ async function checkifexists(username, email) {
         return false;
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        return ({ message: 'Failure' });
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
@@ -213,7 +209,8 @@ async function insertnewuser(username, password, email) {
         return true;
     } catch (e) {
         await dbclient.query('ROLLBACK')
-        return ({ message: 'Failure' });
+        console.log(e);
+        return false;
     } finally {
         dbclient.release()
     }
@@ -255,7 +252,8 @@ async function signin(email, password) {
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        return ({ message: 'Failure' });
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
@@ -309,11 +307,10 @@ app.post('/register', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
         res.send({ message: 'Failure' });
     } else {
-        const register = await insertnewuser(username, password, email);
-        if (register.message = 'Failure') {
-            res.send({ message: 'Failure' });
-        } else {
+        if (await insertnewuser(username, password, email)) {
             res.send({ message: 'Success' });
+        } else {
+            res.send({ message: 'Failure' });
         } 
     }
 });
@@ -372,7 +369,8 @@ async function collectcaptions(imageID) {
         return captions;
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
@@ -432,7 +430,8 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
        
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
@@ -489,7 +488,8 @@ async function captioning(captionText, imageID, authUser) {
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        console.log(e);
+        return false;
     } finally {
         dbclient.release();
     }
