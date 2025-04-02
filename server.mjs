@@ -183,7 +183,7 @@ async function checkifexists(username, email) {
         return false;
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        return ({ message: 'Failure' });
     } finally {
         dbclient.release();
     }
@@ -206,7 +206,7 @@ async function insertnewuser(username, password, email) {
         return true;
     } catch (e) {
         await dbclient.query('ROLLBACK')
-        throw e;
+        return ({ message: 'Failure' });
     } finally {
         dbclient.release()
     }
@@ -248,7 +248,7 @@ async function signin(email, password) {
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        return ({ message: 'Failure' });
     } finally {
         dbclient.release();
     }
@@ -302,10 +302,11 @@ app.post('/register', async (req, res) => {
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
         res.send({ message: 'Failure' });
     } else {
-        if (await insertnewuser(username, password, email)) {
-            res.send({ message: 'Success' });
-        } else {
+        const register = await insertnewuser(username, password, email);
+        if (register.message = 'Failure') {
             res.send({ message: 'Failure' });
+        } else {
+            res.send({ message: 'Success' });
         } 
     }
 });
