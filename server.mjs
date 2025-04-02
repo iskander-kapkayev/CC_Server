@@ -154,7 +154,14 @@ async function graballimages() {
 
 // this get request will provide the imageURLs from the database!
 app.get('/graballimages', async (req, res) => {
-    const imageURLs = await graballimages();
+    let imageURLs = await graballimages();
+    let retries = 0;
+
+    while (retries < 5 && imageURLs.message == 'Failure') {
+        imageURLs = await graballimages();
+        retries++;
+    } // break if too many retries or imageURLs not failure anymore
+
     res.send(imageURLs);
 });
 
