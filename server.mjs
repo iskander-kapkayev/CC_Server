@@ -140,7 +140,7 @@ async function graballimages() {
         }
         
         const jsonResult = {
-            imageURLS: extImageURLs
+            imageurls: extImageURLs
         };
         return jsonResult;
 
