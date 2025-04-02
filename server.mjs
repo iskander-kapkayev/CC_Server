@@ -129,23 +129,24 @@ It will connect with the captions later on.
 async function graballimages() {
     const dbclient = await pool.connect();
     try {
+
         dbclient.query('BEGIN');
         let extImageURLs = [];
         const query = 'SELECT imageurl FROM images';
         const result = await dbclient.query(query);
-        
+
         for(let i = 0; i < result.rows.length; i++) {
             extImageURLs.push(result.rows[i].imageurl);
         }
-
+        
         const jsonResult = {
             imageURLS: extImageURLs
         };
-        
         return jsonResult;
+
     } catch (e) {
         await dbclient.query('ROLLBACK');
-        throw e;
+        return ({ message: 'Failure' });
     } finally {
         dbclient.release();
     }
