@@ -140,7 +140,7 @@ async function graballimages() {
         }
         */
 
-        return result;
+        return result.rows;
     } catch (e) {
         await dbclient.query('ROLLBACK');
         throw e;
