@@ -132,6 +132,7 @@ async function graballimages() {
     try {
 
         dbclient.query('BEGIN');
+
         let extImageURLs = [];
         const query = 'SELECT imageurl FROM images';
         const result = await dbclient.query(query);
@@ -157,7 +158,11 @@ async function graballimages() {
 // this get request will provide the imageURLs from the database!
 app.get('/graballimages', async (req, res) => {
     const imageURLs = await graballimages();
-    res.send(imageURLs);
+    if (!imageURLs) {
+        res.send({ message: 'Failure' });
+    } else {
+        res.send(imageURLs);
+    } // return failure json if failed
 });
 
 /*
@@ -212,7 +217,7 @@ async function insertnewuser(username, password, email) {
         console.log(e);
         return false;
     } finally {
-        dbclient.release()
+        dbclient.release();
     }
 }
 
@@ -380,7 +385,13 @@ async function collectcaptions(imageID) {
 app.get('/collectcaptions', async (req, res) => {
     const imageID = req.query.imageid;
     const captions = await collectcaptions(imageID);
-    res.send(captions);
+
+    if (!captions) {
+        res.send({ message: 'Failure' });
+    } else {
+        res.send(captions);
+    }
+
 });
 
 
