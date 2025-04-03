@@ -529,6 +529,23 @@ app.post('/addnewcaption', async (req, res) => {
     });
 });
 
+// for accessing just the username from token
+app.post('/grabusername', async (req, res) => {
+    const checkToken = req.body.token // grab token
+    // verify that token is an auth user
+    jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
+        
+        if (err) {
+            // token did not work
+            res.send({ message: 'Failure' });
+        } else {
+            // token did work and username can be grabbed
+            const authUser = decoded.username;
+            res.send({ username: authUser });
+        }
+    });
+});
+
 // port listen for the end
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
