@@ -361,14 +361,14 @@ async function collectcaptions(imageID) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
-        let captions = [];
+        let captions = {};
         
         const query = 'SELECT c.captiontext, u.username, COALESCE(v.votecount, 0) as votecount FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
         const result = await dbclient.query(query, [imageID, true]);
-        const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
+        //const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
         
-        for (let i = 0; i < minimum; i++) {
-            captions.push(result.rows[i]);
+        for (let i = 0; i < result.rows.length; i++) {
+            captions[i] = result.rows[i];
         }
 
         return captions;
