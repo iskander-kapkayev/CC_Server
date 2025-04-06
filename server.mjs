@@ -506,6 +506,38 @@ async function captioning(captionText, imageID, authUser) {
     }
 }
 
+async function grabuservotes(username, imageID) {
+    const dbclient = await pool.connect();
+    try {
+        dbclient.query('BEGIN');
+        
+        let uservotes = {};
+        // check supabase for the query steps
+        // first query users table to find userID for authUser
+        // finally, given userid and imageid grab votes for current image
+
+        let query = 'SELECT userid FROM users WHERE username = $1';
+        const result = await dbclient.query(query, [username]);
+        const authUserID = result.rows[0].userid; // set authUser userid
+        
+        query = 'SELECT c.captiontext, v.type FROM captions AS c INNER JOIN voting AS v ON v.captionid = c.captionid WHERE v.userid = $1 AND c.imageid = $2';
+        result = await dbclient.query(query, [authUserID, imageID]);
+        
+        for (let i = 0; i < result.rows.length; i++) {
+            uservotes[i] = result.rows[i];
+        }
+
+        return uservotes;
+
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        console.log(e);
+        return false;
+    } finally {
+        dbclient.release();
+    }
+}
+
 // this post request will allow a user to post a caption
 app.post('/addnewcaption', async (req, res) => {
     const captionText = req.body.captiontext; // grab caption's text
@@ -531,7 +563,7 @@ app.post('/addnewcaption', async (req, res) => {
 
 // for accessing just the username from token
 app.post('/grabusername', async (req, res) => {
-    const checkToken = req.body.token // grab token
+    const checkToken = req.body.token; // grab token
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         
@@ -542,6 +574,29 @@ app.post('/grabusername', async (req, res) => {
             // token did work and username can be grabbed
             const authUser = decoded.username;
             res.send({ username: authUser });
+        }
+    });
+});
+
+// for accessing just the user votes
+app.post('/grabuservotes', async (req, res) => {
+    const checkToken = req.body.token; // grab token
+    const username = req.body.username; // grab username
+    const imageID = req.body.imageid; // grab imageid
+    // verify that token is an auth user
+    jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
+        
+        if (err) {
+            // token did not work
+            res.send({ message: 'Failure' });
+        } else {
+            // token did work
+            const uservotes = await grabuservotes(username, imageID);
+            if (uservotes) {
+                res.send(uservotes); // this will return a JSON
+            } else {
+                res.send({ message: 'No votes found.'}); // no votes found 
+            }
         }
     });
 });
