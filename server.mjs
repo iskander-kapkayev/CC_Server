@@ -563,7 +563,7 @@ app.post('/addnewcaption', async (req, res) => {
 
 // for accessing just the username from token
 app.post('/grabusername', async (req, res) => {
-    const checkToken = req.body.token; // grab token
+    const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         
@@ -580,7 +580,7 @@ app.post('/grabusername', async (req, res) => {
 
 // for accessing just the user votes
 app.post('/grabuservotes', async (req, res) => {
-    const checkToken = req.body.token; // grab token
+    const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
     const username = req.body.username; // grab username
     const imageID = req.body.imageid; // grab imageid
     // verify that token is an auth user
