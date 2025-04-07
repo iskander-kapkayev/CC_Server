@@ -517,7 +517,7 @@ async function grabuservotes(username, imageID) {
         // finally, given userid and imageid grab votes for current image
 
         let query = 'SELECT userid FROM users WHERE username = $1';
-        const result = await dbclient.query(query, [username]);
+        let result = await dbclient.query(query, [username]);
         const authUserID = result.rows[0].userid; // set authUser userid
         
         query = 'SELECT c.captiontext, v.type FROM captions AS c INNER JOIN voting AS v ON v.captionid = c.captionid WHERE v.userid = $1 AND c.imageid = $2';
