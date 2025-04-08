@@ -159,7 +159,7 @@ async function graballimages() {
 app.get('/graballimages', async (req, res) => {
     const imageURLs = await graballimages();
     if (!imageURLs) {
-        res.send({ message: 'Failure' });
+        res.send({ message: 'Unable to grab images' });
     } else {
         res.send(imageURLs);
     } // return failure json if failed
@@ -292,12 +292,12 @@ app.post('/checkifexists', async (req, res) => {
 
     // fail if blanks
     if (username.trim().length === 0 || email.trim().length === 0) {
-        res.send({ message: 'Failure' });
+        res.send({ message: 'Username or email left blank' });
     } else {
         if (await checkifexists(username, email)) {
             res.send({ message: 'Success' });
         } else {
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Unable to find user' });
         } 
     }
 });
@@ -310,12 +310,12 @@ app.post('/register', async (req, res) => {
 
     // fail if blanks
     if (username.trim().length === 0 || email.trim().length === 0 || password.trim().length === 0) {
-        res.send({ message: 'Failure' });
+        res.send({ message: 'Username, email or password left blank' });
     } else {
         if (await insertnewuser(username, password, email)) {
             res.send({ message: 'Success' });
         } else {
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Unable to create new user' });
         } 
     }
 });
@@ -327,12 +327,12 @@ app.post('/signin', async (req, res) => {
 
     // fail if blanks
     if (email.trim().length === 0 || password.trim().length === 0) {
-        res.send({ message: 'Failure' });
+        res.send({ message: 'Error generating token' });
     } else {
         const thisToken = await signin(email, password);
         if (!thisToken) {
             // this means an error happened
-            res.send({ message: 'Failure' })
+            res.send({ message: 'Error generating token' })
         } else {
             // this means a token was made
             res.send({ token: thisToken });
@@ -387,7 +387,7 @@ app.get('/collectcaptions', async (req, res) => {
     const captions = await collectcaptions(imageID);
 
     if (!captions) {
-        res.send({ message: 'Failure' });
+        res.send({ message: 'Unable to grab captions' });
     } else {
         res.send(captions);
     }
@@ -460,7 +460,7 @@ app.post('/votecaption', async (req, res) => {
         
         if (err) {
             // token did not work
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Token not recognized' });
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
@@ -470,7 +470,7 @@ app.post('/votecaption', async (req, res) => {
             } else if (voted == 'removed') {
                 res.send({ message: 'Removed' });
             } else {
-                res.send({ message: 'Failure' });
+                res.send({ message: 'Vote was unable to be captured' });
             }
         }
     });
@@ -506,6 +506,37 @@ async function captioning(captionText, imageID, authUser) {
     }
 }
 
+// function to query and delete a user's caption
+async function deletion(captionText, imageID, authUser) {
+    const dbclient = await pool.connect();
+    try {
+        dbclient.query('BEGIN');
+        
+        // check supabase for the query steps
+        // first query users table to find userID for authUser
+        // finally, insert new caption into captions table
+        // userid, imageid, captiontext, captionapproval (default true)
+        
+        let query = 'SELECT userid FROM users WHERE username = $1';
+        const result = await dbclient.query(query, [authUser]);
+        const authUserID = result.rows[0].userid; // set authUser userid
+        
+        query = 'DELETE FROM captions WHERE captiontext = $1 AND userid = $2 AND imageid = $3';
+        await dbclient.query(query, [captionText, authUserID, imageID]);
+        await dbclient.query('COMMIT');
+
+        return true;
+
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        console.log(e);
+        return false;
+    } finally {
+        dbclient.release();
+    }
+}
+
+// function to query user vote choices
 async function grabuservotes(username, imageID) {
     const dbclient = await pool.connect();
     try {
@@ -549,13 +580,42 @@ app.post('/addnewcaption', async (req, res) => {
         
         if (err) {
             // token did not work
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Token was not recognized' });
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
             const writeCaption = await captioning(captionText, imageID, authUser);
             if (writeCaption) {
                 res.send({ message: 'Success' });
+            } else {
+                // writing caption failed
+                res.send({ message: 'Writing caption failed' });
+            }
+        }
+    });
+});
+
+// this post request will allow a user to delete their own caption
+app.post('/deletecaption', async (req, res) => {
+    const captionText = req.body.captiontext; // grab caption's text
+    const imageID = req.body.imageid; // grab image id
+    const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
+
+    // verify that token is an auth user
+    jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
+        
+        if (err) {
+            // token did not work
+            res.send({ message: 'Token was not recognized' });
+        } else {
+            // token did work and username can be grabbed
+            const authUser = decoded.username;
+            const deleteCaption = await deletion(captionText, imageID, authUser);
+            if (deleteCaption) {
+                res.send({ message: 'Success' });
+            } else {
+                // deletion failed
+                res.send({ message: 'Deletion failed' });
             }
         }
     });
@@ -569,7 +629,7 @@ app.post('/grabusername', async (req, res) => {
         
         if (err) {
             // token did not work
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Token not recognized' });
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
@@ -588,7 +648,7 @@ app.post('/grabuservotes', async (req, res) => {
         
         if (err) {
             // token did not work
-            res.send({ message: 'Failure' });
+            res.send({ message: 'Token not recognized' });
         } else {
             // token did work
             const uservotes = await grabuservotes(username, imageID);
