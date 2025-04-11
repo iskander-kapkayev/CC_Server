@@ -521,7 +521,8 @@ async function deletion(captionText, imageID, authUser) {
         const result = await dbclient.query(query, [authUser]);
         const authUserID = result.rows[0].userid; // set authUser userid
         
-        query = 'DELETE FROM captions WHERE captiontext = $1 AND userid = $2 AND imageid = $3';
+        // instead of deletion, set approval status to false to track captions
+        query = 'UPDATE captions SET captionapproval = FALSE WHERE captiontext = $1 AND userid = $2 AND imageid = $3';
         await dbclient.query(query, [captionText, authUserID, imageID]);
         await dbclient.query('COMMIT');
 
