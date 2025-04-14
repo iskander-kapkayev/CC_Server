@@ -396,7 +396,7 @@ app.get('/collectcaptions', async (req, res) => {
 
 
 // this function will assist in upvoting
-async function voting(captionText, captionAuthor, authUser, captionType) {
+async function voting(captionText, captionAuthor, authUser, captionType, thisimageID) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
@@ -416,8 +416,8 @@ async function voting(captionText, captionAuthor, authUser, captionType) {
         result = await dbclient.query(query, [captionAuthor]);
         const captionAuthorID = result.rows[0].userid; // set captionAuthor userid
 
-        query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2';
-        result = await dbclient.query(query, [captionText, captionAuthorID]);
+        query = 'SELECT captionid FROM captions WHERE captiontext = $1 AND userid = $2 AND imageid = $3';
+        result = await dbclient.query(query, [captionText, captionAuthorID, thisimageID]);
         const captionTextID = result.rows[0].captionid; // set captionText captionid
 
         query = 'SELECT voteid FROM voting WHERE captionid = $1 AND userid = $2';
@@ -454,7 +454,7 @@ app.post('/votecaption', async (req, res) => {
     const captionAuthor = req.body.captionuser; // grab caption's author
     const captionType = req.body.type; // grab type of vote (upvote or downvote)
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
-
+    const thisimageID = req.body.imageid; // grab imageid
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         
@@ -464,7 +464,7 @@ app.post('/votecaption', async (req, res) => {
         } else {
             // token did work and username can be grabbed
             const authUser = decoded.username;
-            const voted = await voting(captionText, captionAuthor, authUser, captionType);
+            const voted = await voting(captionText, captionAuthor, authUser, captionType, thisimageID);
             if (voted == 'added') {
                 res.send({ message: 'Added' });
             } else if (voted == 'removed') {
