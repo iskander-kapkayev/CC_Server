@@ -662,6 +662,49 @@ app.post('/grabuservotes', async (req, res) => {
     });
 });
 
+/*
+for leaderboard
+*/
+
+async function grableaderboard() {
+    const dbclient = await pool.connect();
+    try {
+
+        dbclient.query('BEGIN');
+
+        let uservotes = [];
+        const query = 'SELECT u.username, coalesce(vc.votecount, 0) AS votecount, coalesce(vc.category, "noob") AS category FROM users AS u LEFT JOIN vote_counter AS vc ON vc.userid = u.userid ORDER BY votecount DESC';
+        const result = await dbclient.query(query);
+
+        for(let i = 0; i < result.rows.length; i++) {
+            uservotes.push(result.rows[i]);
+        }
+        
+        const jsonResult = {
+            leaderboard: uservotes
+        };
+        return jsonResult;
+
+    } catch (e) {
+        await dbclient.query('ROLLBACK');
+        console.log(e);
+        return false;
+    } finally {
+        dbclient.release();
+    }
+}
+
+app.get('/leaderboard', async (req, res) => {
+
+    const leaderboard = await grableaderboard();
+    if (!leaderboard) {
+        res.send({ message: 'Unable to grab ledaerboard' });
+    } else {
+        res.send(leaderboard);
+    } // return failure json if failed
+
+});
+
 // port listen for the end
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
