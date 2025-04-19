@@ -698,7 +698,7 @@ app.get('/leaderboard', async (req, res) => {
 
     const leaderboard = await grableaderboard();
     if (!leaderboard) {
-        res.send({ message: 'Unable to grab ledaerboard' });
+        res.send({ message: 'Unable to grab leaderboard' });
     } else {
         res.send(leaderboard);
     } // return failure json if failed
