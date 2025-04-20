@@ -673,7 +673,7 @@ async function grableaderboard() {
         dbclient.query('BEGIN');
 
         let uservotes = [];
-        const query = "SELECT u.username, coalesce(vc.votecount, 0) AS votecount, coalesce(vc.category, 'noob') AS category FROM users AS u LEFT JOIN vote_counter AS vc ON vc.userid = u.userid ORDER BY votecount DESC";
+        const query = "SELECT u.username, coalesce(uc.votecount, 0) AS votecount, coalesce(uc.category, 'noob') AS category FROM users AS u LEFT JOIN user_category AS uc ON uc.userid = u.userid ORDER BY votecount DESC";
         const result = await dbclient.query(query);
 
         for(let i = 0; i < result.rows.length; i++) {
