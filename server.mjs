@@ -41,22 +41,22 @@ User passwords will be encrypted in the DB.
 
 // this async function will provide an encryption
 async function encryptPassword(password) {
-  const salt = await bcrypt.genSalt(10); // Defines time needed to calculate a single bcrypt hash              
-  try {                                  // The higher #, the more hashing rounds are done
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-  } catch (error) {
-    console.error('Error encrypting password:', error);
-    console.log(e);
-    return false;
-  }
+    const salt = await bcrypt.genSalt(10); // Defines time needed to calculate a single bcrypt hash              
+    try {                                  // The higher #, the more hashing rounds are done
+        const hashedPassword = await bcrypt.hash(password, salt);
+        return hashedPassword;
+    } catch (error) {
+        console.error('Error encrypting password:', error);
+        console.log(e);
+        return false;
+    }
 }
 
 // this async function will compare hash passwords
 async function comparePassword(password, hashedPassword) {
     try {
-      const isMatch = await bcrypt.compare(password, hashedPassword);
-      return isMatch;
+        const isMatch = await bcrypt.compare(password, hashedPassword);
+        return isMatch;
     } catch (error) {
         console.log(e);
         return false;
@@ -672,18 +672,18 @@ async function grableaderboard() {
 
         dbclient.query('BEGIN');
 
-        let uservotes = [];
+        let uservotes = {};
         const query = "SELECT u.username, coalesce(uc.votecount, 0) AS votecount, coalesce(uc.category, 'noob') AS category FROM users AS u LEFT JOIN user_category AS uc ON uc.userid = u.userid ORDER BY votecount DESC";
         const result = await dbclient.query(query);
 
         for(let i = 0; i < result.rows.length; i++) {
-            uservotes.push(result.rows[i]);
+            uservotes[i] = result.rows[i];
         }
         
-        const jsonResult = {
+        /* const jsonResult = {
             leaderboard: uservotes
-        };
-        return jsonResult;
+        }; */
+        return uservotes;
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
