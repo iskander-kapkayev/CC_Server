@@ -133,18 +133,18 @@ async function graballimages() {
 
         dbclient.query('BEGIN');
 
-        let extImageURLs = [];
+        let images = {};
         const query = 'SELECT imageurl FROM images';
         const result = await dbclient.query(query);
 
         for(let i = 0; i < result.rows.length; i++) {
-            extImageURLs.push(result.rows[i].imageurl);
+            images[i] = result.rows[i].imageurl;
         }
         
-        const jsonResult = {
+        /* const jsonResult = {
             imageurls: extImageURLs
-        };
-        return jsonResult;
+        }; */
+        return images;
 
     } catch (e) {
         await dbclient.query('ROLLBACK');
