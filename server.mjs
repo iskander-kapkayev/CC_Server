@@ -134,11 +134,11 @@ async function graballimages() {
         dbclient.query('BEGIN');
 
         let images = {};
-        const query = 'SELECT imageurl FROM images';
+        const query = 'SELECT imageid, imageurl FROM images';
         const result = await dbclient.query(query);
 
         for(let i = 0; i < result.rows.length; i++) {
-            images[i] = result.rows[i].imageurl;
+            images[result.rows[i].imageid] = result.rows[i].imageurl;
         }
         
         /* const jsonResult = {
