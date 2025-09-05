@@ -552,11 +552,11 @@ async function grabuservotes(username, imageID) {
         let result = await dbclient.query(query, [username]);
         const authUserID = result.rows[0].userid; // set authUser userid
         
-        query = 'SELECT c.captiontext, v.type FROM captions AS c INNER JOIN voting AS v ON v.captionid = c.captionid WHERE v.userid = $1 AND c.imageid = $2';
+        query = 'SELECT c.captionid, c.captiontext, v.type FROM captions AS c INNER JOIN voting AS v ON v.captionid = c.captionid WHERE v.userid = $1 AND c.imageid = $2';
         result = await dbclient.query(query, [authUserID, imageID]);
         
         for (let i = 0; i < result.rows.length; i++) {
-            uservotes[i] = result.rows[i];
+            uservotes[result.rows[i].captionid] = result.rows[i];
         }
 
         return uservotes;
