@@ -1,6 +1,6 @@
 import express from 'express'; // for transactions
 import pg from 'pg'; // for pg connection
-//import cors from 'cors'; // access control optiona
+//import cors from 'cors'; // access control options
 import bcrypt from 'bcryptjs'; // for handling user passwords
 import jwt from 'jsonwebtoken'; // for handling JWT for authorization
 
@@ -623,6 +623,7 @@ app.post('/deletecaption', async (req, res) => {
 });
 
 // for accessing just the username from token
+// can also decode payload on frontend
 app.post('/grabusername', async (req, res) => {
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
     // verify that token is an auth user
