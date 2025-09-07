@@ -470,7 +470,7 @@ app.post('/votecaption', async (req, res) => {
             } else if (voted == 'removed') {
                 res.send({ message: 'Removed' });
             } else {
-                res.send({ message: 'Vote was unable to be captured' });
+                res.status(400).send({ message: 'Vote was unable to be captured' });
             }
         }
     });
