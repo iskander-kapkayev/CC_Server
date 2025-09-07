@@ -455,15 +455,15 @@ app.post('/votecaption', async (req, res) => {
     const captionType = req.body.type; // grab type of vote (upvote or downvote)
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
     const thisimageID = req.body.imageid; // grab imageid
+    const authUser = req.body.sessionUser; // grab imageid
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         
         if (err) {
             // token did not work
-            res.send({ message: 'Token not recognized' });
+            res.status(401).send({ message: 'Token not recognized' });
         } else {
-            // token did work and username can be grabbed
-            const authUser = decoded.username;
+            // token did work
             const voted = await voting(captionText, captionAuthor, authUser, captionType, thisimageID);
             if (voted == 'added') {
                 res.send({ message: 'Added' });
