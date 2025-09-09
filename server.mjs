@@ -382,13 +382,13 @@ async function collectcaptions(imageID) {
 }
 
 // this function will query and get a specific caption
-async function afterVoteCaptions(captionText, imageID) {
+async function afterVoteCaptions(imageID, captionId) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
         
-        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, COALESCE(uc.category, $3) as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captiontext = $4 ORDER BY newVoteCount DESC';
-        const result = await dbclient.query(query, [imageID, true, "noob", captionText]);
+        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, COALESCE(uc.category, $3) as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captionid = $4 ORDER BY newVoteCount DESC';
+        const result = await dbclient.query(query, [imageID, true, "noob", captionId]);
         //const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
 
         return result.rows[0]; // should be one unique row
@@ -476,6 +476,7 @@ app.post('/votecaption', async (req, res) => {
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
     const thisimageID = req.body.imageid; // grab imageid
     const authUser = req.body.sessionUser; // grab userid
+    const captionId = req.body.captionid; // grab captionid
     // verify that token is an auth user
     jwt.verify(checkToken, process.env.SECRETKEY, async (err, decoded) => {
         
@@ -487,11 +488,11 @@ app.post('/votecaption', async (req, res) => {
             const voted = await voting(captionText, captionAuthor, authUser, captionType, thisimageID);
             if (voted == 'added') {
                 // return new row
-                const newRow = await afterVoteCaptions(thisimageID, captionText);
+                const newRow = await afterVoteCaptions(thisimageID, captionId);
                 res.send(newRow);
             } else if (voted == 'removed') {
                 // return new row
-                const newRow = await afterVoteCaptions(thisimageID, captionText);
+                const newRow = await afterVoteCaptions(thisimageID, captionId);
                 res.send(newRow);
             } else {
                 res.status(400).send({ message: 'Vote was unable to be captured' });
