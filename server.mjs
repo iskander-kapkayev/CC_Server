@@ -382,13 +382,13 @@ async function collectcaptions(imageID) {
 }
 
 // this function will query and get a specific caption
-async function afterVoteCaptions(imageID, captionId) {
+async function afterVoteCaptions(imageID, captionId, voteType) {
     const dbclient = await pool.connect();
     try {
         dbclient.query('BEGIN');
         
-        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, COALESCE(uc.category, $3) as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captionid = $4 ORDER BY newVoteCount DESC';
-        const result = await dbclient.query(query, [imageID, true, "noob", captionId]);
+        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, $3 as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captionid = $4 ORDER BY newVoteCount DESC';
+        const result = await dbclient.query(query, [imageID, true, voteType, captionId]);
         //const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
 
         return result.rows[0]; // should be one unique row
@@ -416,7 +416,8 @@ app.get('/collectcaptions', async (req, res) => {
 
 // this is a test function for grabbing the result captions
 app.get('/testaftervotecaptions', async (req, res) => {
-    const captions = await afterVoteCaptions(1, 193);
+
+    const captions = await afterVoteCaptions(1, 193, 'upvote');
 
     if (!captions) {
         res.send({ message: 'Unable to grab captions' });
