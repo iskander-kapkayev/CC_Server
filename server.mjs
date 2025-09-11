@@ -414,6 +414,18 @@ app.get('/collectcaptions', async (req, res) => {
 
 });
 
+// this is a test function for grabbing the result captions
+app.get('/testaftervotecaptions', async (req, res) => {
+    const captions = await afterVoteCaptions(1, 193);
+
+    if (!captions) {
+        res.send({ message: 'Unable to grab captions' });
+    } else {
+        res.send(captions);
+    }
+
+});
+
 
 // this function will assist in upvoting
 async function voting(captionText, captionAuthor, authUser, captionType, thisimageID) {
