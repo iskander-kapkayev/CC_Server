@@ -505,7 +505,7 @@ app.post('/votecaption', async (req, res) => {
                 res.send(newRow);
             } else if (voted == 'removed') {
                 // return new row
-                const newRow = await afterVoteCaptions(thisimageID, captionId, captionType);
+                const newRow = await afterVoteCaptions(thisimageID, captionId, 'removed');
                 res.send(newRow);
             } else {
                 res.status(400).send({ message: 'Vote was unable to be captured' });
