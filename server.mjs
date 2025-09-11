@@ -414,7 +414,7 @@ app.get('/collectcaptions', async (req, res) => {
 
 });
 
-// this is a test function for grabbing the result captions
+// this is a test for grabbing the result captions
 app.get('/testaftervotecaptions', async (req, res) => {
 
     const captions = await afterVoteCaptions(1, 193, 'upvote');
@@ -501,11 +501,11 @@ app.post('/votecaption', async (req, res) => {
             const voted = await voting(captionText, captionAuthor, authUser, captionType, thisimageID);
             if (voted == 'added') {
                 // return new row
-                const newRow = await afterVoteCaptions(thisimageID, captionId);
+                const newRow = await afterVoteCaptions(thisimageID, captionId, captionType);
                 res.send(newRow);
             } else if (voted == 'removed') {
                 // return new row
-                const newRow = await afterVoteCaptions(thisimageID, captionId);
+                const newRow = await afterVoteCaptions(thisimageID, captionId, captionType);
                 res.send(newRow);
             } else {
                 res.status(400).send({ message: 'Vote was unable to be captured' });
