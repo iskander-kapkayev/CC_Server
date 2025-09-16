@@ -612,6 +612,7 @@ async function grabuservotes(username, imageID) {
 app.post('/addnewcaption', async (req, res) => {
     const captionText = req.body.captiontext; // grab caption's text
     const imageID = req.body.imageid; // grab image id
+    const authUser = req.body.sessionUsername; // grab username from body
     const checkToken = req.headers['authorization'] && req.headers['authorization'].split(' ')[1]; // grab token
 
     // verify that token is an auth user
@@ -622,7 +623,6 @@ app.post('/addnewcaption', async (req, res) => {
             res.send({ message: 'Token was not recognized' });
         } else {
             // token did work and username can be grabbed
-            const authUser = decoded.username;
             const writeCaption = await captioning(captionText, imageID, authUser);
             if (writeCaption) {
                 res.send({ message: 'Success' });
