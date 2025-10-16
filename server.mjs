@@ -363,7 +363,7 @@ async function collectcaptions(imageID) {
         dbclient.query('BEGIN');
         let captions = {};
         
-        const query = 'SELECT c.captiontext, c.captionid, u.username, COALESCE(v.votecount, 0) as votecount, COALESCE(uc.category, $3) as category FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
+        const query = 'SELECT c.captiontext, c.captionid, u.username, COALESCE(v.votecount, 0) as votecount, COALESCE(uc.category, $3) as category FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category_2 AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 ORDER BY votecount DESC';
         const result = await dbclient.query(query, [imageID, true, "noob"]);
         //const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
         
@@ -387,7 +387,7 @@ async function afterVoteCaptions(imageID, captionId, voteType) {
     try {
         dbclient.query('BEGIN');
         
-        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, $3 as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captionid = $4 ORDER BY newVoteCount DESC';
+        const query = 'SELECT c.captionid, COALESCE(v.votecount, 0) as newVoteCount, $3 as newUserVote FROM captions AS c LEFT JOIN users AS u ON u.userid = c.userid LEFT JOIN vote_view AS v ON v.captionid = c.captionid LEFT JOIN user_category_2 AS uc ON uc.userid = c.userid WHERE c.imageid = $1 AND c.captionapproval = $2 AND c.captionid = $4 ORDER BY newVoteCount DESC';
         const result = await dbclient.query(query, [imageID, true, voteType, captionId]);
         //const minimum = Math.min(result.rows.length, 10); // only want 10 captions max
 
@@ -712,7 +712,7 @@ async function grableaderboard() {
         dbclient.query('BEGIN');
 
         let uservotes = {};
-        const query = "SELECT u.username, coalesce(uc.votecount, 0) AS votecount, coalesce(uc.category, 'noob') AS category FROM users AS u LEFT JOIN user_category AS uc ON uc.userid = u.userid ORDER BY votecount DESC";
+        const query = "SELECT u.username, coalesce(uc.votecount, 0) AS votecount, coalesce(uc.category, 'noob') AS category FROM users AS u LEFT JOIN user_category_2 AS uc ON uc.userid = u.userid ORDER BY votecount DESC";
         const result = await dbclient.query(query);
 
         for(let i = 0; i < result.rows.length; i++) {
